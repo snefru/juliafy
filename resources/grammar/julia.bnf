@@ -1,0 +1,542 @@
+{
+
+  parserClass                   =   "io.alef.julia.parser.JuliaParser"
+  psiClassPrefix                =   "Julia"
+  psiImplClassSuffix            =   "Impl"
+  psiPackage                    =   "io.alef.julia.psi"
+  psiImplPackage                =   "io.alef.julia.psi.impl"
+  elementTypeHolderClass        =   "io.alef.julia.psi.JuliaTypes"
+  elementTypeClass              =   "io.alef.julia.psi.JuliaElementType"
+  tokenTypeClass                =   "io.alef.julia.psi.JuliaTokenType"
+
+  extends(".*Stmt")   =   Statement
+  extends(".*Function|Type|Alias|Constant|.*Def|.*Type|.*Exp|TypeReference|.*Type|.*Tuple|.*Op|ExpList|ExpList2|.*Literal|Constant|TypeAlias|.*Def|.*Identifier")   =   Expression
+
+//  extends(".*Stmt")   =   Expression
+
+//  extends("SimpleIdentifier|MacroIdentifier|.*expr|.*Exp|.*Op|.*literal|.*Literal|.*Type|TypeReference|.*Def|Tuple|TypeAlias|Function|CompactFunction|Constant|EmptyTuple|ExpList")   =   Expression
+
+//  extends(".*Type|TypeReference|VarElmType")                               =   TypeExp
+
+//  extends("Include|Using|.*_stmt|expr|.*Stmt")
+//                                =   Expression
+    tokens=[
+        add_asgn                =   '+='
+        oftype                  =   '::'
+        colon                   =   ':'
+//(define reserved-words '(begin while if for try return break continue
+//			 function macro quote let local global const
+//			 abstract typealias type bitstype immutable ccall do
+//			 module baremodule using import export importall))
+        keyword                 =   'regexp:begin|while|if|for|try|return|break|continue|function|macro|quote|let|local|global|const|abstract|typealias|type|bitstype|immutable|ccall|do|module|baremodule|using|import|export|importall'
+        union                   =   'Union'
+        predefined_value        =   'regexp:WORD_SIZE|VERSION'
+        binary_integer          =   'regexp:0b[01]+'
+        bitwise_operator        =   'regexp:\~|\&|\||>>>|>>|<<'
+        byte_array              =   "regexp:b('([^'\\]|\\.)*'|\"([^\"\\]|\\.)*\")"
+        comment                 =   'regexp:\#.*'
+        integer                 =   'regexp:\d+'
+        float                   =   'regexp:[0-9]*\.[0-9]+([eE][-+]?[0-9]+)?' //todo 1. is also valid
+        hex_integer             =   'regexp:0[xX][0-9a-f]+'
+        hex_float               =   'regexp:0[xX][0-9a-f]*(\.[0-9a-f]+)?p[+-]?[0-9a-f]+'//todo allows 0xp1
+        octal_integer           =   'regexp:0o[01234567]+'
+        predefined_float        =   'regexp:Inf16|Inf32|Inf|-Inf16|-Inf32|-Inf|NaN16|NaN16|NaN'
+        comma                   =   ','
+        semicolon               =   ';'
+        relational_operator     =   'regexp:===|==|\!=|>=|<=|>|<'
+        update_operator         =   'regexp:=|\+=|-=|\*=|/=|\\=|\%=|\^=|\&=|\$=|>>>=|>>=|<<='
+        arithmetic_operator     =   'regexp:\+|-|\*|\\'
+        elmnt_operator          =   'regexp:\.(\+|-|\*|\\)'
+        other_operator          =   'regexp:\?|\.\.\.|\|\||\&\&|\!|\.|\:|\@|\-\>|\$'
+        brackets                =   'regexp:\(|\)|\{|\}|\[|\]'
+        bitwise_operator        =   'regexp:\~|\&|\||\$|>>>|>>|<<'
+/*
+
+        TODO
+        Triple quoted strings
+        definition using negative lookahead has issues see below ...
+        Syntax error.
+        STRING=\"\"\"(([^\"]|\"(?!\"\")|\"\"(?!\"))*)\"\"\"
+        string                  =   'regexp:"""(([^"]|"(?!"")|""(?!"))*)"""'
+*/
+        string                  =   'regexp:"[^"]*"'
+/*      A Char value represents a single character:
+        it is just a 32-bit integer with a special literal representation and appropriate arithmetic behaviors,
+        whose numeric value is interpreted as a Unicode code point.
+        Julia uses your system’s locale and language settings to determine which characters can be printed as-is and which
+        must be output using the generic, escaped \u or \U input forms.
+        In addition to these Unicode escape forms, all of C’s traditional escaped input forms can also be used
+        [Julia Language Documentation, Release 0.3.0-dev](pp29)
+        samples
+        '\u2123' '\\' '\"' '\'' '\n' '\r' '\b' '\t' '\f' '\a' '\v' '\?' '\213' '\xaa' 'a' '?' 'à''_' '+' '/'
+ */
+        char                    =   "regexp:'(\\[uU][0-9a-fA-F]{1,4})'|'(\\([\\\"'nrbtfav?]|[0-7]{1,3}|x[0-9a-fA-F]{1,2}))'|'.'"
+        regex                   =   "regexp:r('([^'\\]|\\.)*'|\"([^\"\\]|\\.)*\")"
+        version                 =   "regexp:v(('\d(\.\d){0,2}(-[^\']*)?')|(\"\d(\.\d){0,2}(-[^\']*)?\"))"
+//|('\\([\\\"\'\n\r\b\t\f\a\]|[0-7]{1,3}|x[0-9a-fA-F]{1,2}))'
+/*      Variable names must begin with a letter (A-Z or a-z), underscore,
+        or Unicode character with code point greater than 00A0.
+        Subsequent characters may also include ! and digits (0-9).
+        [Julia Language Documentation, Release 0.3.0-dev](pp5)
+
+        JFlex Issues ....
+        Macros in character classes are not supported.
+        ID=[\p{L}_][0-9\p{L}_\!]*
+
+*/
+//        id                      =   'regexp:([:letter:]|_)([0-9_\!]|[:letter:])*' //todo re-instate - removed for psi viewer
+        id                      = 'regexp:([a-zA-Z_])([a-zA-Z0-9_\!])*' //todo review
+    ]
+}
+
+
+//Julia allows “splicing” or interpolation of expression objects, prefixed with
+//$, into quoted expressions, written using normal syntax. The above example can be written more clearly and concisely
+//using interpolation:
+//julia> a = 1;
+//julia> ex = :($a + b)
+//:(+(1,b))
+
+Unit    ::=
+        Module
+    |   (Statement)+
+
+Module                  ::= 'module' (Statement)+ end
+
+Statement ::=
+        Constant
+    |   IncludeStmt
+    |   ExportStmt
+    |   ImportStmt
+    |   UsingStmt
+    |   StdFunction
+    |   CompactFunction
+    |   IfStmt
+    |   ForStmt
+    |   WhileStmt
+    |   TryCatchStmt
+    |   ReturnStmt
+    |   break
+    |   continue
+    |   Expression
+
+
+//STATEMENTS
+IncludeStmt             ::= include '(' string ')'
+ExportStmt              ::= export  (Identifier|MacroIdentifier) (',' (Identifier|MacroIdentifier))*
+ImportStmt              ::= import Identifier (colon Identifier (',' Identifier)*)?
+UsingStmt               ::= using Expression (',' Expression)*
+//  @name expr1 expr2 ...
+//  @name(expr1, expr2, ...)
+MacroDef                ::= macro Identifier Tuple (Statement)+ end //todo
+IfStmt                  ::= if  Statement+ (ElseIfStmt* (else Statement+)?)?  end //todo review
+ElseIfStmt              ::= elseif Statement+
+ForStmt                 ::= IndexSpecifier Statement+ end
+
+IndexSpecifier          ::= for (MultiIndexSpecificer|SingleIndexSpecificer )
+SingleIndexSpecificer   ::= id ('in'|'=') Expression
+MultiIndexSpecificer    ::= '(' id (',' id)+')' ('in'|'=') Expression
+
+WhileStmt               ::= while Expression Statement+ end
+ReturnStmt              ::= 'return' Expression?
+TryCatchStmt            ::= try Statement+ CatchClause? FinallyClause? end
+CatchClause             ::= catch (id)? Statement+
+FinallyClause           ::= finally Statement+
+
+//in ascending order of precedence
+Expression ::=
+        TypeAlias
+    |   ChainExp
+    |   ArrayConstructorOp        //todo confirm position before or after function definition
+    |   ApplyIndexOp        //todo confirm position before or after function definition
+    |   ApplyCFunctionOp
+    |   MacroDef
+    |   AbstractTypeDef
+    |   CompositeTypeDef
+    |   ImmutableTypeDef
+    |   UnionType
+    |   BlockExp
+    |   Tuple //bracketed
+//    |   group17
+    |   group1
+//     (?)
+    |   ConditionalOp   //group2
+    |   ApplyFunctionOp
+    |   ComprehensionOp //todo precedence?
+    |   group3
+//     (&&)
+    |   AndOp           //group 4
+    |   LambdaExp       //group5
+//     (-- -->)
+    |   group6
+//     (|\|>| |<\||)
+    |   PipeOp          //group 7
+    |   group8
+    |   group9
+    |   group10
+//    |   TransposeOp
+    |   group11
+//    |   HVCatOp
+//    |   HCatOp
+//    |   VCatOp
+    |   CTransposeOp
+    |   group12
+    |   group13
+    |   group14
+    |   group15
+//     (|.|)))
+    |    SelectorOp
+    |   group17
+        |   ExpList2
+
+ArrayExpression ::=
+        TypeAlias
+    |   ChainExp
+    |   ArrayConstructorOp        //todo confirm position before or after function definition
+    |   ApplyIndexOp        //todo confirm position before or after function definition
+    |   ApplyCFunctionOp
+    |   MacroDef
+    |   AbstractTypeDef
+    |   CompositeTypeDef
+    |   ImmutableTypeDef
+    |   UnionType
+    |   BlockExp
+    |   Tuple //bracketed
+//    |   group17
+    |   group1
+//     (?)
+    |   ConditionalOp   //group2
+    |   ApplyFunctionOp
+    |   ComprehensionOp //todo precedence?
+    |   group3
+//     (&&)
+    |   AndOp           //group 4
+    |   LambdaExp       //group5
+//     (-- -->)
+    |   group6
+//     (|\|>| |<\||)
+    |   PipeOp          //group 7
+    |   group8
+    |   group9
+    |   group10
+//    |   TransposeOp
+    |   group11
+//    |   HVCatOp
+//    |   HCatOp
+//    |   VCatOp
+    |   CTransposeOp
+    |   group12
+    |   group13
+    |   group14
+    |   group15
+//     (|.|)))
+    |    SelectorOp
+    |   group17
+        |   ExpList2
+        |   EndLiteral
+
+
+private group1 ::=
+
+//  '#((= := += -= *= /= //= .//= .*= ./= |\\=| |.\\=| ^= .^= %= .%= |\|=| &= $= => <<= >>= >>>= ~ |.+=| |.-=|)
+        AssignOp
+    |   AddAssignOp
+    |   SubAssignOp
+    |   MultAssignOp
+    |   DivAssignOp
+    |   FractionAssignOp
+    |   InvDivAssignOp
+    |   ExponentAssignOp
+    |   RemainderAssignOp
+    |   BitWiseNotOp
+    |   BitwiseOrAssignOp
+    |   BitwiseAndAssignOp
+    |   BitwiseXorAssignOp
+    |   AShiftLeftAssignOp
+    |   AShiftRightAssignOp
+    |   LShiftRightAssignOp
+    |   ElmntAddAssignOp
+    |   ElmntSubAssignOp
+    |   ElmntMultAssignOp
+    |   ElmntDivAssignOp
+    |   ElmntFractionAssignOp
+    |   FactoriseAssignOp
+    |   ElmntExponentAssignOp //todo conform
+    |   ElmntRemainderAssignOp
+    |   RangeOp //todo review clashed with ternary operator - mismatch with precedence
+
+private group3 ::=
+//     (|\|\||)
+        OrOp
+    |   BitwiseOrOp
+
+private group6 ::=
+//     (> < >= ≥ <= ≤ == === ≡ != ≠ !== ≢ |.>| |.<| |.>=| |.≥| |.<=| |.≤| |.==| |.!=| |.≠| |.=| |.!| |<:| |>:| ∈ ∉ ∋ ∌ ⊆ ⊈ ⊂ ⊄ ⊊)
+        LessThanOrEqualOp
+    |   LessThanOp
+    |   GreaterThanOrEqualOp
+    |   GreaterThanOp
+    |   IsOp
+    |   EqualsOp
+    |   SubtypeOp
+    |   NotEqualOp
+    |   IsNotOp
+    |   ElmntGreaterThanOrEqualOp
+    |   ElmntLessThanOrEqualOp
+    |   ElmntGreaterThanOp
+    |   ElmntLessThanOp
+    |   ElmntEqualsOp
+    |   ElmntNotEqualOp
+
+private group8 ::=
+//     (: |..|)
+        SimpleQuoteOp
+    |   CompoundQuoteOp  //todo tbc
+    |   SpliceOp
+
+private group9 ::=
+//     (+ - ⊕ ⊖ ⊞ ⊟ |.+| |.-| |\|| ∪ ∨ $ ⊔)
+        PlusOp
+    |   MinusOp
+    |   BitwiseXorOp //todo confirm
+    |   ElmntPlusOp
+    |   ElmntMinusOp
+
+private group10 ::=
+//     (<< >> >>> |.<<| |.>>| |.>>>|)
+        AShiftLeftOp
+    |   LShiftRightOp
+    |   AShiftRightOp
+    |   ElmntAShiftLeftOp
+    |   ElmntLShiftRightOp
+    |   ElmntAShiftRightOp
+
+private group11 ::=
+//     (* / |./| ÷ % ⋅ ∘ × |.%| |.*| |\\| |.\\| & ∩ ∧ ⊗ ⊘ ⊙ ⊚ ⊛ ⊠ ⊡ ⊓)
+        MultiplyOp
+    |   DivideOp
+    |   RemainderOp
+    |   BitwiseAndOp
+    |   InverseDivideOp
+    |   ElmntMultiplyOp
+    |   ElmntDivideOp
+    |   ElmntRemainderOp
+    |   FactoriseOp
+
+private group12::=
+//     (// .//)
+
+        FractionOp
+    |   ElmntFractionOp
+
+private group13 ::=
+//     (^ |.^|)
+        ExponentOp
+    |   ElmntExponentOp
+
+private group15 ::=
+//????
+        UnaryMinusOp //todo tbc
+    |   NotOp   //todo tbc
+    |   InterpolateOp //todo tbc
+
+private group14::=
+//     (|::|)
+        TypeOp
+    |   SingleType
+
+
+private group17 ::=
+        MacroIdentifier
+    |   TypeReference
+    |   Identifier
+    |   IntegerLiteral
+    |   HexFloatLiteral
+    |   HexIntegerLiteral
+    |   CharLiteral
+    |   BinaryLiteral
+    |   OctalLiteral
+    |   FloatLiteral
+    |   ByteArrayLiteral
+    |   VersionLiteral
+    |   RegexLiteral
+    |   PredefinedFloatLiteral
+    |   PredefinedLiteral
+    |   StringLiteral
+    |   BooleanLiteral
+    |   EmptyLiteral
+
+
+ArrayConstructorOp      ::= Expression '[' ']'
+AddAssignOp             ::= Expression '+=' Expression      { rightAssociative=true }
+AssignOp                ::= Expression '=' Expression      { rightAssociative=true }
+AndOp                   ::= Expression '&&' Statement
+AShiftLeftOp            ::= Expression '<<' Expression
+AShiftLeftAssignOp      ::= Expression '<<=' Expression     { rightAssociative=true }
+AShiftRightOp           ::= Expression '>>' Expression
+AShiftRightAssignOp     ::= Expression '>>=' Expression     { rightAssociative=true }
+ApplyIndexOp            ::= Expression  '[' ArrayExpression ']'  { rightAssociative=true } //should be exp exp not supported by grammar kit
+ApplyFunctionOp         ::= Expression '(' ExpList? ')'     { rightAssociative=true } //same as above
+ApplyCFunctionOp        ::= ccall Tuple                     { rightAssociative=true } //same as above
+
+BinaryLiteral           ::= binary_integer
+BitwiseAndOp            ::= Expression '&' Expression
+BitwiseAndAssignOp      ::= Expression '&=' Expression      { rightAssociative=true }
+BitwiseOrOp             ::= Expression '|' Expression
+BitWiseNotOp            ::= '~' Expression
+BitwiseOrAssignOp       ::= Expression '|=' Expression      { rightAssociative=true }
+BitwiseXorAssignOp      ::= Expression '$=' Expression      { rightAssociative=true }
+BitwiseXorOp            ::= Expression '$' Expression
+BlockExp                ::= begin Expression? end
+BooleanLiteral          ::= true | false
+Tuple                   ::= '(' ExpList? ')' //todo review comma
+ByteArrayLiteral        ::= byte_array
+
+ChainExp                ::= Expression (semicolon Expression)+ semicolon?
+Constant                ::= const Identifier '=' Expression //todo review simple identifier or any
+CharLiteral             ::= char
+CompactFunction         ::= Identifier TypeParameters? Tuple '=' FunctionBody
+CompoundQuoteOp         ::= 'quote' Expression+ 'end'
+ConditionalOp           ::= Expression '?' Expression colon Expression
+ComprehensionOp         ::= '[' ( Expression IndexSpecifier | ExpList ) ']' //todo review
+
+DivAssignOp             ::= Expression '/=' Expression      { rightAssociative=true }
+DivideOp                ::= Expression '/' Expression
+
+ElmntAddAssignOp        ::= Expression '.+=' Expression     { rightAssociative=true }
+ElmntAShiftLeftOp       ::= Expression '.<<' Expression
+ElmntAShiftRightOp      ::= Expression '.>>' Expression
+ElmntFractionOp         ::= Expression './/' Expression
+ElmntDivideOp           ::= Expression './' Expression
+ElmntDivAssignOp        ::= Expression './=' Expression     { rightAssociative=true }
+ElmntExponentAssignOp   ::= Expression '.^=' Expression     { rightAssociative=true }
+ElmntFractionAssignOp   ::= Expression './/=' Expression    { rightAssociative=true }
+FactoriseAssignOp       ::= Expression '.\\=' Expression    { rightAssociative=true }
+ElmntLShiftRightOp      ::= Expression '.>>>' Expression
+FactoriseOp             ::= Expression '.\\' Expression
+ElmntMultAssignOp       ::= Expression '.*=' Expression     { rightAssociative=true }
+ElmntRemainderAssignOp  ::= Expression '.%=' Expression     { rightAssociative=true }
+ElmntRemainderOp        ::= Expression '.%' Expression
+ElmntSubAssignOp        ::= Expression '.-=' Expression     { rightAssociative=true }
+ElmntExponentOp         ::= Expression '.^' Expression
+ElmntMinusOp            ::= Expression '.-' Expression
+ElmntMultiplyOp         ::= Expression '.*' Expression
+ElmntPlusOp             ::= Expression '.+' Expression
+ElmntGreaterThanOp      ::= Expression '.>' Expression
+ElmntLessThanOp         ::= Expression '.<' Expression
+ElmntGreaterThanOrEqualOp    ::= Expression '.>=' Expression
+ElmntLessThanOrEqualOp  ::= Expression '.<=' Expression
+ElmntEqualsOp           ::= Expression '.==' Expression
+ElmntNotEqualOp         ::= Expression '.!=' Expression
+EmptyLiteral              ::= '[' ']'
+EndLiteral              ::= end  //todo review should only appear in [] as a literal
+ExponentAssignOp        ::= Expression '^=' Expression      { rightAssociative=true }
+ExponentOp              ::= Expression '^' Expression
+EqualsOp                ::= Expression '==' Expression
+ExpList                 ::= Expression  (',' (Expression?))*
+ExpList2                ::= Expression  (',' Expression)+
+
+FloatLiteral            ::= float
+FractionAssignOp        ::= Expression '//=' Expression
+FractionOp              ::= Expression '//' Expression
+StdFunction             ::= function Identifier TypeParameters?  Tuple FunctionBody end
+FunctionBody            ::= Statement*
+
+GreaterThanOp           ::= Expression '>' Expression
+GreaterThanOrEqualOp    ::= Expression '>=' Expression
+
+HexIntegerLiteral       ::= hex_integer
+HexFloatLiteral         ::= hex_float
+
+IntegerLiteral          ::= integer
+InterpolateOp           ::= '$'Expression
+InvDivAssignOp          ::= Expression '\\=' Expression
+InverseDivideOp         ::= Expression '\\' Expression
+IsOp                    ::= Expression '===' Expression
+IsNotOp                 ::= Expression '!==' Expression
+
+LambdaExp               ::= Identifier '->' Expression      { rightAssociative=true }
+LessThanOp              ::= Expression '<' Expression
+LessThanOrEqualOp       ::= Expression '<=' Expression
+LShiftRightAssignOp     ::= Expression '>>>=' Expression
+LShiftRightOp           ::= Expression '>>>' Expression
+
+MinusOp                 ::= Expression '-' Expression
+MultAssignOp            ::= Expression '*=' Expression
+MultiplyOp              ::= Expression '*' Expression
+
+NotEqualOp              ::= Expression '!=' Expression
+NotOp                   ::= '!' Expression
+
+
+OctalLiteral            ::= octal_integer
+OrOp                    ::= Expression '||' Statement
+
+PipeOp                  ::= Expression '|>' Expression
+PlusOp                  ::= Expression '+' Expression
+PredefinedFloatLiteral  ::= predefined_float
+PredefinedLiteral       ::= predefined_value
+
+RangeOp                 ::= Expression colon Expression
+RegexLiteral            ::= regex
+RemainderAssignOp       ::= Expression '%=' Expression
+RemainderOp             ::= Expression '%' Expression
+
+SelectorOp              ::= Expression '.' Expression
+SimpleQuoteOp           ::= colon Expression //todo review this should be a quoted expression!!! with interpolation
+SingleType              ::= oftype Expression
+SpliceOp                ::= Expression '...'
+StringLiteral           ::= string
+SubAssignOp             ::= Expression '-=' Expression
+SubtypeOp               ::= Expression '<:' Expression
+
+TypeOp                  ::= Expression oftype Expression
+
+
+//-----todo review
+//(define unary-ops '(+ - ! ~ |<:| |>:| √))
+//; operators that are both unary and binary
+//(define unary-and-binary-ops '(+ - $ & ~))
+
+UnaryMinusOp            ::= '-' Expression
+CTransposeOp            ::= Expression "'"
+UnaryPlusOp             ::= '+' Expression
+
+
+//HCatOp                  ::= '[' Expression+ ']'
+//VCatOp                  ::= '[' Expression (comma Expression)+ ']'
+//HVCatOp                 ::= '[' HList (semicolon HList)+ ']'
+//HList                   ::= Expression+
+TransposeOp             ::= Expression ".'"
+
+//TYPES
+AbstractTypeDef         ::= abstract Identifier TypeParameters? ('<:' Expression)?
+CompositeTypeDef        ::= 'type' Identifier TypeParameters? ('<:' Expression)? TypeDefBody end
+ImmutableTypeDef        ::= immutable Identifier TypeParameters? ('<:' Expression )? TypeDefBody end
+TypeAlias               ::= typealias TypeReference Expression
+
+private TypeDefBody     ::= (CompactFunction|TypedField|Identifier|StdFunction)* //todo review use of TypeOp
+
+TypedField              ::= Identifier oftype Expression
+
+TypeParameters          ::= '{' ExpList '}'
+
+TypeReference           ::= Identifier TypeParameters?
+UnionType               ::= union Tuple
+
+//LITERALS
+VersionLiteral          ::= version
+
+//IDENTIFIERS
+MacroIdentifier         ::= '@' Identifier
+Identifier              ::= id
+
+
+//Int16Type               ::= 'Int16'
+//Int32Type               ::= 'Int32'
+//Int64Type               ::= 'Int64'
+//IntType                 ::= 'Int'
+//Float16Type             ::= 'Float16'
+//Float32Type             ::= 'Float32'
+//Float64Type             ::= 'Float64'
+//FloatType               ::= 'Float'

@@ -1,0 +1,54 @@
+<idea-plugin version="2">
+
+    <id>Julia</id>
+    <name>Julia</name>
+    <version>0.1</version>
+    <category>Custom Languages</category>
+    <vendor url="alef.io" email="support@alef.io">alef</vendor>
+
+
+    <description><![CDATA[
+      Enter short description for your plugin here.<br>
+      <em>most HTML tags may be used</em>
+    ]]></description>
+
+    <change-notes><![CDATA[
+      Add change notes here.<br>
+      <em>most HTML tags may be used</em>
+    ]]>
+    </change-notes>
+
+    <!-- please see https://confluence.jetbrains.com/display/IDEADEV/Build+Number+Ranges for description -->
+    <idea-version since-build="131"/>
+
+    <!-- please see https://confluence.jetbrains.com/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products
+         on how to target different products -->
+    <!-- uncomment to enable plugin in all products
+    <depends>com.intellij.modules.lang</depends>
+    -->
+
+    <extensions defaultExtensionNs="com.intellij">
+        <moduleType id="JULIA_MODULE" implementationClass="io.alef.julia.module.JuliaModuleType"/>
+        <fileTypeFactory implementation="io.alef.julia.JuliaFileTypeFactory"/>
+        <lang.parserDefinition language="Julia" implementationClass="io.alef.julia.JuliaParserDefinition"/>
+        <lang.syntaxHighlighterFactory key="Julia"
+                                       implementationClass="io.alef.julia.highlighter.JuliaSyntaxHighlighterFactory"/>
+        <sdkType implementation="io.alef.julia.sdk.JuliaSdkType"/>
+        <runConfigurationProducer implementation="io.alef.julia.runner.JuliaRunConfigurationProducer"/>
+        <configurationType implementation="io.alef.julia.runner.JuliaApplicationConfigurationType"/>
+        <programRunner implementation="io.alef.julia.runner.JuliaDefaultProgramRunner"/>
+    </extensions>
+
+    <application-components>
+        <!-- Add your application components here -->
+    </application-components>
+
+    <project-components>
+        <!-- Add your project components here -->
+    </project-components>
+
+    <actions>
+        <!-- Add your actions here -->
+    </actions>
+
+</idea-plugin>

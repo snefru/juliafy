@@ -1,0 +1,55 @@
+package io.alef.julia.runner;
+
+import com.intellij.execution.ExecutionException;
+import com.intellij.execution.configurations.CommandLineState;
+import com.intellij.execution.configurations.GeneralCommandLine;
+import com.intellij.execution.filters.TextConsoleBuilder;
+import com.intellij.execution.filters.TextConsoleBuilderImpl;
+import com.intellij.execution.process.OSProcessHandler;
+import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.process.ProcessTerminatedListener;
+import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.openapi.diagnostic.Logger;
+import org.jetbrains.annotations.NotNull;
+
+public class JuliaCommandLineState extends CommandLineState {
+    private static final Logger LOGGER = Logger.getInstance("org.jetbrains.julia.parser.JuliaParser");
+
+    private final
+    @NotNull
+    String myFilePath;
+    private final
+    @NotNull
+    String myVmOptions;
+    private final
+    @NotNull
+    String myArguments;
+
+    public JuliaCommandLineState(final @NotNull ExecutionEnvironment env,
+                                 final @NotNull String filePath,
+                                 final @NotNull String vmOptions,
+                                 final @NotNull String arguments) {
+        super(env);
+        myFilePath = filePath;
+        myVmOptions = vmOptions;
+        myArguments = arguments;
+//        todo review
+        final TextConsoleBuilder builder = getConsoleBuilder();
+        if (builder instanceof TextConsoleBuilderImpl) {
+            ((TextConsoleBuilderImpl) builder).setUsePredefinedMessageFilter(false);
+        }
+    }
+
+    @NotNull
+    @Override
+    protected ProcessHandler startProcess() throws ExecutionException {
+        GeneralCommandLine commandLine = new GeneralCommandLine();
+        LOGGER.warn("hardcoded mac osx paths !!!!");
+        commandLine.setExePath("/Applications/Julia-0.3.7.app/Contents/Resources/julia/bin/julia");
+//        commandLine.withWorkDirectory("/tmp");
+        commandLine.addParameter(myFilePath);
+        final OSProcessHandler processHandler = new OSProcessHandler(commandLine.createProcess(), commandLine.getCommandLineString());
+        ProcessTerminatedListener.attach(processHandler, getEnvironment().getProject());
+        return processHandler;
+    }
+}
