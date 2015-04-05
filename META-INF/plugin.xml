@@ -4,19 +4,14 @@
     <name>Juliafy</name>
     <version>0.1</version>
     <category>Custom Languages</category>
-    <vendor url="alef.io" email="support@alef.io">alef</vendor>
+    <vendor url="alef.io">alef</vendor>
 
 
     <description><![CDATA[
-      Enter short description for your plugin here.<br>
-      <em>most HTML tags may be used</em>
+      Julia Editor
+      Currently requires Julia 0.3.7 on Mac OSX
     ]]></description>
 
-    <change-notes><![CDATA[
-      Add change notes here.<br>
-      <em>most HTML tags may be used</em>
-    ]]>
-    </change-notes>
 
     <!-- please see https://confluence.jetbrains.com/display/IDEADEV/Build+Number+Ranges for description -->
     <idea-version since-build="131"/>

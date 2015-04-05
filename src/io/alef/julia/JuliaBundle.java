@@ -32,7 +32,7 @@ public class JuliaBundle {
         if (ourBundle != null) bundle = ourBundle.get();
         if (bundle == null) {
             bundle = ResourceBundle.getBundle(BUNDLE);
-            ourBundle = new SoftReference<>(bundle);
+            ourBundle = new SoftReference<ResourceBundle>(bundle);
         }
         return bundle;
     }
