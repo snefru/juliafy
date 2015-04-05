@@ -12,5 +12,5 @@ A [Julia](https://github.com/JuliaLang/julia) editor based on  [Intellij](https:
 
 ##Notes
 
-Underlying grammar is 'derived' from Julia (not a reference).
+Underlying grammar is 'derived' from Julia.
 
