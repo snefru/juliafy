@@ -1,7 +1,7 @@
 <idea-plugin version="2">
 
-    <id>Julia</id>
-    <name>Julia</name>
+    <id>Juliafy</id>
+    <name>Juliafy</name>
     <version>0.1</version>
     <category>Custom Languages</category>
     <vendor url="alef.io" email="support@alef.io">alef</vendor>
