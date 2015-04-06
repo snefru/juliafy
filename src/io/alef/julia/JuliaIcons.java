@@ -7,7 +7,8 @@ import javax.swing.*;
 public interface JuliaIcons {
 
     final String PATH = "/icon/";
-    final Icon FILE = IconLoader.findIcon(PATH + "julia.png");
+    String JULIA_PNG = "julia.png";
+    final Icon FILE = IconLoader.findIcon(PATH + JULIA_PNG);
     final Icon ICON = FILE;
     final Icon MODULE_ICON = ICON;
     final Icon JULIA_24 = ICON;

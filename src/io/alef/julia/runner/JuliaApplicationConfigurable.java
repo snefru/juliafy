@@ -40,8 +40,7 @@ public class JuliaApplicationConfigurable extends SettingsEditor<JuliaApplicatio
                 );
 
                 fileChooser.showDialog();
-
-                PsiFile selectedFile = fileChooser.getSelectedFile();
+                final PsiFile selectedFile = fileChooser.getSelectedFile();
                 final VirtualFile virtualFile = selectedFile == null ? null : selectedFile.getVirtualFile();
                 if (virtualFile != null) {
                     final String path = FileUtil.toSystemDependentName(virtualFile.getPath());

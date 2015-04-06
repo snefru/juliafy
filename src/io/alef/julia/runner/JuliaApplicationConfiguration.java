@@ -70,12 +70,6 @@ public class JuliaApplicationConfiguration extends LocatableConfigurationBase {
 
     @Override
     public void checkConfiguration() throws RuntimeConfigurationException {
-
-//        super.checkConfiguration();
-//        final Module module = findModule();
-//        if (module == null) {
-//            throw new RuntimeConfigurationException(JuliaBundle.message("run.no.module", getName()));
-//        }
     }
 
     @Nullable
@@ -92,8 +86,8 @@ public class JuliaApplicationConfiguration extends LocatableConfigurationBase {
         if (myFilePath == null) {
             return null;
         }
-        String fileUrl = VfsUtilCore.pathToUrl(FileUtil.toSystemIndependentName(myFilePath));
-        VirtualFile file = VirtualFileManager.getInstance().findFileByUrl(fileUrl);
+        final String fileUrl = VfsUtilCore.pathToUrl(FileUtil.toSystemIndependentName(myFilePath));
+        final VirtualFile file = VirtualFileManager.getInstance().findFileByUrl(fileUrl);
         if (file == null) {
             throw new RuntimeConfigurationException("Can't find module for " + myFilePath);
         }
