@@ -1,20 +1,19 @@
 // This is a generated file. Not intended for manual editing.
 package io.alef.julia.psi;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.List;
+import org.jetbrains.annotations.*;
+import com.intellij.psi.PsiElement;
 
 public interface JuliaCompositeTypeDef extends JuliaExpression {
 
-    @NotNull
-    List<JuliaExpression> getExpressionList();
+  @NotNull
+  List<JuliaExpression> getExpressionList();
 
-    @Nullable
-    JuliaTypeParameters getTypeParameters();
+  @NotNull
+  List<JuliaTypeParameters> getTypeParametersList();
 
-    @NotNull
-    List<JuliaTypedField> getTypedFieldList();
+  @NotNull
+  List<JuliaTypedVariable> getTypedVariableList();
 
 }

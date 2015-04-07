@@ -1,0 +1,7 @@
+Simple File(0,13)
+  JuliaUsingStmtImpl(USING_STMT)(0,13)
+    PsiElement(JuliaTokenType.using)('using')(0,5)
+    PsiWhiteSpace(' ')(5,6)
+    JuliaIdentifierImpl(IDENTIFIER)(6,13)
+      PsiElement(JuliaTokenType.other_operator)('.')(6,7)
+      PsiElement(JuliaTokenType.id)('ARPACK')(7,13)

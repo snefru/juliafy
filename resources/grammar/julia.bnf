@@ -21,6 +21,7 @@
 //  extends("Include|Using|.*_stmt|expr|.*Stmt")
 //                                =   Expression
     tokens=[
+        space                   =   'regexp:\s+'
         add_asgn                =   '+='
         oftype                  =   '::'
         colon                   =   ':'
@@ -101,7 +102,7 @@ Unit    ::=
         Module
     |   (Statement)+
 
-Module                  ::= 'module' (Statement)+ end
+Module                  ::= 'module' Identifier (Statement)+ end
 
 Statement ::=
         Constant
@@ -125,7 +126,7 @@ Statement ::=
 IncludeStmt             ::= include '(' string ')'
 ExportStmt              ::= export  (Identifier|MacroIdentifier) (',' (Identifier|MacroIdentifier))*
 ImportStmt              ::= import Identifier (colon Identifier (',' Identifier)*)?
-UsingStmt               ::= using Expression (',' Expression)*
+UsingStmt               ::= using Identifier (',' Identifier)*
 //  @name expr1 expr2 ...
 //  @name(expr1, expr2, ...)
 MacroDef                ::= macro Identifier Tuple (Statement)+ end //todo
@@ -231,6 +232,7 @@ ArrayExpression ::=
     |   group15
 //     (|.|)))
     |    SelectorOp
+    |   Identifier TypeParameters
     |   group17
         |   ExpList2
         |   EndLiteral
@@ -279,8 +281,8 @@ private group6 ::=
     |   IsOp
     |   EqualsOp
     |   SubtypeOp
-    |   NotEqualOp
     |   IsNotOp
+    |   NotEqualOp
     |   ElmntGreaterThanOrEqualOp
     |   ElmntLessThanOrEqualOp
     |   ElmntGreaterThanOp
@@ -348,7 +350,6 @@ private group14::=
 
 private group17 ::=
         MacroIdentifier
-    |   TypeReference
     |   Identifier
     |   IntegerLiteral
     |   HexFloatLiteral
@@ -439,7 +440,7 @@ ExpList2                ::= Expression  (',' Expression)+
 FloatLiteral            ::= float
 FractionAssignOp        ::= Expression '//=' Expression
 FractionOp              ::= Expression '//' Expression
-StdFunction             ::= function Identifier TypeParameters?  Tuple FunctionBody end
+StdFunction             ::= function Identifier TypeParameters?  '(' TypedVariable (',' TypedVariable)* ')' FunctionBody end
 FunctionBody            ::= Statement*
 
 GreaterThanOp           ::= Expression '>' Expression
@@ -451,7 +452,7 @@ HexFloatLiteral         ::= hex_float
 IntegerLiteral          ::= integer
 InterpolateOp           ::= '$'Expression
 InvDivAssignOp          ::= Expression '\\=' Expression
-InverseDivideOp         ::= Expression '\\' Expression
+InverseDivideOp         ::= Expression '\' Expression
 IsOp                    ::= Expression '===' Expression
 IsNotOp                 ::= Expression '!==' Expression
 
@@ -466,6 +467,7 @@ MultAssignOp            ::= Expression '*=' Expression
 MultiplyOp              ::= Expression '*' Expression
 
 NotEqualOp              ::= Expression '!=' Expression
+
 NotOp                   ::= '!' Expression
 
 
@@ -490,7 +492,7 @@ StringLiteral           ::= string
 SubAssignOp             ::= Expression '-=' Expression
 SubtypeOp               ::= Expression '<:' Expression
 
-TypeOp                  ::= Expression oftype Expression
+TypeOp                  ::= Expression '::' Expression
 
 
 //-----todo review
@@ -511,13 +513,13 @@ TransposeOp             ::= Expression ".'"
 
 //TYPES
 AbstractTypeDef         ::= abstract Identifier TypeParameters? ('<:' Expression)?
-CompositeTypeDef        ::= 'type' Identifier TypeParameters? ('<:' Expression)? TypeDefBody end
-ImmutableTypeDef        ::= immutable Identifier TypeParameters? ('<:' Expression )? TypeDefBody end
-TypeAlias               ::= typealias TypeReference Expression
+CompositeTypeDef        ::= 'type' Identifier TypeParameters? ('<:' Identifier TypeParameters?)? TypeDefBody end
+ImmutableTypeDef        ::= immutable Identifier TypeParameters? ('<:' Identifier TypeParameters?)? TypeDefBody end
+TypeAlias               ::= typealias Identifier TypeParameters? Identifier TypeParameters?
 
-private TypeDefBody     ::= (CompactFunction|TypedField|Identifier|StdFunction)* //todo review use of TypeOp
+private TypeDefBody     ::= (CompactFunction|TypedVariable|Identifier|StdFunction)* //todo review use of TypeOp
 
-TypedField              ::= Identifier oftype Expression
+TypedVariable              ::= Identifier oftype Identifier TypeParameters?
 
 TypeParameters          ::= '{' ExpList '}'
 
@@ -529,7 +531,7 @@ VersionLiteral          ::= version
 
 //IDENTIFIERS
 MacroIdentifier         ::= '@' Identifier
-Identifier              ::= id
+Identifier              ::= id('.'id)*|id?('.'id)+
 
 
 //Int16Type               ::= 'Int16'

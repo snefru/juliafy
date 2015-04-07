@@ -22,6 +22,7 @@ EOL="\r"|"\n"|"\r\n"
 LINE_WS=[\ \t\f]
 WHITE_SPACE=({LINE_WS}|{EOL})+
 
+SPACE=[ \t\n\x0B\f\r]+
 KEYWORD=begin|while|if|for|try|return|break|continue|function|macro|quote|let|local|global|const|abstract|typealias|type|bitstype|immutable|ccall|do|module|baremodule|using|import|export|importall
 PREDEFINED_VALUE=WORD_SIZE|VERSION
 BINARY_INTEGER=0b[01]+
@@ -82,6 +83,7 @@ ID=([a-zA-Z_])([a-zA-Z0-9_\!])*
   "immutable"                { return IMMUTABLE; }
   "typealias"                { return TYPEALIAS; }
 
+  {SPACE}                    { return SPACE; }
   {KEYWORD}                  { return KEYWORD; }
   {PREDEFINED_VALUE}         { return PREDEFINED_VALUE; }
   {BINARY_INTEGER}           { return BINARY_INTEGER; }

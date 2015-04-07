@@ -1,14 +1,16 @@
 // This is a generated file. Not intended for manual editing.
 package io.alef.julia.psi;
 
-import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
+import org.jetbrains.annotations.*;
+import com.intellij.psi.PsiElement;
 
 public interface JuliaModule extends PsiElement {
 
-    @NotNull
-    List<JuliaStatement> getStatementList();
+  @NotNull
+  JuliaIdentifier getIdentifier();
+
+  @NotNull
+  List<JuliaStatement> getStatementList();
 
 }

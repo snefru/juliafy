@@ -1,0 +1,8 @@
+Simple File(0,3)
+  JuliaStatementImpl(STATEMENT)(0,3)
+    JuliaInverseDivideOpImpl(INVERSE_DIVIDE_OP)(0,3)
+      JuliaIdentifierImpl(IDENTIFIER)(0,1)
+        PsiElement(JuliaTokenType.id)('x')(0,1)
+      PsiElement(JuliaTokenType.arithmetic_operator)('\')(1,2)
+      JuliaIdentifierImpl(IDENTIFIER)(2,3)
+        PsiElement(JuliaTokenType.id)('y')(2,3)
