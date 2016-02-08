@@ -1,4 +1,4 @@
-#Juliafy
+#Juliafy [![Build Status](https://travis-ci.org/snefru/juliafy.svg?branch=master)](https://travis-ci.org/snefru/juliafy)
 
 
 An  [Intellij](https://www.jetbrains.com/) editor for [Julia](https://github.com/JuliaLang/julia).
