@@ -1,9 +1,9 @@
-#Juliafy [![Build Status](https://travis-ci.org/snefru/juliafy.svg?branch=master)](https://travis-ci.org/snefru/juliafy)
+# Juliafy [![Build Status](https://travis-ci.org/snefru/juliafy.svg?branch=master)](https://travis-ci.org/snefru/juliafy)
 
 
 An  [Intellij](https://www.jetbrains.com/) editor for [Julia](https://github.com/JuliaLang/julia).
 
-##Requirements
+## Requirements
 
 1.  Mac OSX
 2. [Julia](http://julialang.org/downloads/)
@@ -14,7 +14,7 @@ An  [Intellij](https://www.jetbrains.com/) editor for [Julia](https://github.com
     cd juliafy
     gradle runidea
 
-##Notes
+## Notes
 
 Underlying grammar is 'derived' from Julia.
 
